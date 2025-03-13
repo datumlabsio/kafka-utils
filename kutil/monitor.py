@@ -64,6 +64,9 @@ def main():
             print('connect: ', row[0])
             print('status: ', row[1])
             print('tasks: ', row[2])
+            if RESTART_IF_FAILED:
+                if row[1] != 'RUNNING':
+                    print('connector not running, will restart')
             if not STATUS_ONLY:
                 for r in row[3:]:
                     print(r)
