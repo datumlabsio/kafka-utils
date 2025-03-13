@@ -2,8 +2,10 @@ import requests
 import argparse
 from time import sleep
 from datetime import datetime
-
-argparser = argparse.ArgumentParser()
+from .util import ConnectorMonitor, print_env
+argparser = argparse.ArgumentParser(
+    description='Monitor Kafka Connectors'
+)
 argparser.add_argument('--connect-url', default='http://localhost:8083')
 argparser.add_argument('--status-only', required=False, default=False, action='store_true')
 argparser.add_argument('--restart-if-failed', required=False, action='store_true')
@@ -16,15 +18,15 @@ RESTART_IF_FAILED = args.restart_if_failed
 INTERVAL = int(args.interval)
 
 def main():
-    
+    monitor = ConnectorMonitor(CONNECT_URL)
     while True:
+
         response = requests.get(f'{CONNECT_URL}/connectors')
         response_json = response.json()
         data = []
         for connector in response_json:
             row = []
-
-            status = get_connection_status(connector)
+            status = monitor.get_connection_status(connector)
             state = status['connector']['state']
             tasks = status['tasks']
 
@@ -41,11 +43,11 @@ def main():
                     row.append(t.get('trace'))
                 if state != 'RUNNING' and RESTART_IF_FAILED:
                     row.append('connector not running, will restart')
-                    restart_connector(connector)
+                    monitor.restart_connector(connector)
                 data.append(row)
         
         # clear screen
-        print_env()
+        
         print('\033c')
         # color header
         print('\033[1;32;40m')
@@ -68,4 +70,6 @@ def main():
             print('--------------------------------------')
         
         sleep(INTERVAL)
-main()
+
+if __name__ == '__main__':
+    main()

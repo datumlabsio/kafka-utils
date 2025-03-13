@@ -9,8 +9,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'kmonitor = kutil.monitor:main'
-        ]
+            'kmonitor = kutil.monitor:main'        ]
     },
     author='Zain Ulabidin <zain@datumlabs.io>',
 )

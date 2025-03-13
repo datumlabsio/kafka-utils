@@ -9,3 +9,5 @@ kutil/__pycache__
 __pycache__
 *.egg-info
 *.egg
+.venv
+build
