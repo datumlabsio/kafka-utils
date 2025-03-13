@@ -1,0 +1,11 @@
+ venv
+
+# pyc etc
+kutil/*.pyc
+kutil/*.pyo
+kutil/__pycache__
+*.pyc
+*.pyo
+__pycache__
+*.egg-info
+*.egg
