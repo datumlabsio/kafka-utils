@@ -25,29 +25,29 @@ def main():
         response_json = response.json()
         data = []
         for connector in response_json:
-            row = []
+            messages = {}
             status = monitor.get_connection_status(connector)
             state = status['connector']['state']
             tasks = status['tasks']
 
-            row.append(connector)
-            row.append(state)
+            messages['connector'] = connector
+            messages['state'] = state
+
             tasks_status = []
+            tasks_traces = []
             for t in tasks:
-                tasks_status.append(t.get('state'))
-            row.append(tasks_status)
-            if STATUS_ONLY:
-                data.append(row)
-            else:
-                for t in tasks:
-                    row.append(t.get('trace'))
-                if state != 'RUNNING' and RESTART_IF_FAILED:
-                    row.append('connector not running, will restart')
-                    monitor.restart_connector(connector)
-                data.append(row)
-        
-        # clear screen
-        
+                if t.get('state') != 'RUNNING' and RESTART_IF_FAILED:
+                    response = monitor.restart_connector(connector)
+                    tasks_status.append(t.get('state') + ', Restarting now :' + str(response))
+                    tasks_traces.append(t.get('trace'))
+                else:
+                    tasks_status.append(t.get('state'))
+
+            messages['tasks_trace'] = tasks_traces
+            messages['tasks'] = tasks_status
+            
+            data.append(messages)
+    
         print('\033c')
         # color header
         print('\033[1;32;40m')
@@ -55,23 +55,23 @@ def main():
         print('--------------------------------------')
         print('Connector Status')
         print('--------------------------------------')
-
+        print_env(
+            CONNECT_URL=CONNECT_URL,
+            STATUS_ONLY=STATUS_ONLY,
+            RESTART_IF_FAILED=RESTART_IF_FAILED,
+            INTERVAL=INTERVAL
+        )
         # color reset
         print('\033[0;37;40m')
         dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        for row in data:
-            print(dt)
-            print('connect: ', row[0])
-            print('status: ', row[1])
-            print('tasks: ', row[2])
-            if RESTART_IF_FAILED:
-                if row[1] != 'RUNNING':
-                    print('connector not running, will restart')
+        for messages in data:
+            print(f"Connector: {messages['connector']}")
+            print(f"State: {messages['state']}")
+            print(f"Tasks: {messages['tasks']}")
             if not STATUS_ONLY:
-                for r in row[3:]:
-                    print(r)
+                print(f"Tasks Trace: {messages['tasks_trace']}")
             print('--------------------------------------')
-        
+        print(f"Last Updated: {dt}")
         sleep(INTERVAL)
 
 if __name__ == '__main__':

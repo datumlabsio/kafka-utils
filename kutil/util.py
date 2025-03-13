@@ -14,8 +14,8 @@ class ConnectorMonitor:
         return response_json
 
     def restart_connector(self, connector_name):
-        response = requests.post(f'{{self.connect_url}}/connectors/{connector_name}/restart?includeTasks=true&onlyFailed=True')
-        return response
+        response = requests.post(f'{self.connect_url}/connectors/{connector_name}/restart?includeTasks=true&onlyFailed=True')
+        return response.status_code
 
 def print_env(*args, **kwargs):
     """
